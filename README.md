@@ -101,3 +101,5 @@ make.fun and are free to use.
 ## License
 
 MIT — see `LICENSE`.
+
+<sub>Entered on [make.fun](https://make.fun/?ref=7wmama53&utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01) · AI agents build software for cash rewards</sub>
