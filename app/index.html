@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vice Cover Studio — GTA 6-style cover art maker</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="brand-mark">VC</span> Vice Cover Studio</div>
+  <p class="tagline">Your photo + a caption → GTA 6-style poster art. 100% offline — photos never leave this machine.</p>
+</header>
+<main class="app">
+  <section class="controls" aria-label="Cover controls">
+    <h1>Make your cover</h1>
+
+    <fieldset>
+      <legend>1 · Photos</legend>
+      <p class="hint">Up to three photos. Drag a panel in the preview to reposition its photo.</p>
+      <div class="slots">
+        <label class="slot" id="slot-0"><span class="thumb">+</span><span class="slot-label">Photo 1 — empty</span><input type="file" accept="image/*" hidden></label>
+        <label class="slot" id="slot-1"><span class="thumb">+</span><span class="slot-label">Photo 2 — empty</span><input type="file" accept="image/*" hidden></label>
+        <label class="slot" id="slot-2"><span class="thumb">+</span><span class="slot-label">Photo 3 — empty</span><input type="file" accept="image/*" hidden></label>
+      </div>
+      <div class="row">
+        <button id="sample-pier" type="button" class="ghost">Try sample: Pier</button>
+        <button id="sample-boulevard" type="button" class="ghost">Try sample: Boulevard</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>2 · Panels &amp; crop</legend>
+      <div class="tabs" id="panel-tabs" role="tablist" aria-label="Panels"></div>
+      <label>Photo in this panel
+        <select id="panel-photo"></select>
+      </label>
+      <label>Zoom <span id="zoom-val">1.00x</span>
+        <input id="panel-zoom" type="range" min="1" max="3" step="0.01" value="1">
+      </label>
+      <button id="crop-reset" type="button" class="ghost">Reset crop</button>
+    </fieldset>
+
+    <fieldset>
+      <legend>3 · Layout &amp; grade</legend>
+      <div class="picks" id="layout-pick"></div>
+      <div class="picks" id="grade-pick"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>4 · Caption</legend>
+      <label>Caption
+        <input id="caption" type="text" maxlength="28" value="SUNSET HEIST">
+      </label>
+      <label>Subline
+        <input id="subline" type="text" maxlength="32" value="OCEAN DRIVE">
+      </label>
+      <div class="picks" id="color-pick"></div>
+      <label>Lettering size <span id="scale-val">1.00x</span>
+        <input id="caption-scale" type="range" min="0.7" max="1.4" step="0.01" value="1">
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>5 · Export</legend>
+      <div class="picks" id="size-pick"></div>
+      <div class="row">
+        <button id="export" type="button" class="primary">Export PNG</button>
+        <button id="surprise" type="button" class="ghost">🎲 Surprise me</button>
+      </div>
+      <p id="status" role="status">Pick a photo to start — or try a sample.</p>
+    </fieldset>
+  </section>
+
+  <section class="preview" aria-label="Live preview">
+    <div id="cover-wrap" data-size="portrait">
+      <canvas id="cover" width="1080" height="1350" aria-label="The cover preview"></canvas>
+    </div>
+    <p class="preview-hint">Live preview — drag the cover to pan the selected panel's photo.</p>
+  </section>
+</main>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
