@@ -237,6 +237,7 @@ canvas.addEventListener('pointermove', (e) => {
   redraw();
 });
 canvas.addEventListener('pointerup', () => { drag = null; });
+canvas.addEventListener('pointercancel', () => { drag = null; });
 
 // ---- layout, grade, caption, size ------------------------------------------
 

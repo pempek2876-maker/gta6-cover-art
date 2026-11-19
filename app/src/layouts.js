@@ -77,6 +77,7 @@ export function pickLayout(w, h, id) {
 
 /** Centroid of a polygon, for anchoring captions and labels. */
 export function polygonCenter(points) {
+  if (!points.length) return [0, 0];
   let x = 0;
   let y = 0;
   for (const [px, py] of points) { x += px; y += py; }

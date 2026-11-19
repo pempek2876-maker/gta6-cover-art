@@ -13,6 +13,9 @@ node serve.ts
 # open http://localhost:8080
 ```
 
+No build step and no dependencies: the app is plain static files, and
+`serve.ts` runs on the Node standard library alone (Node 18+).
+
 ## How it works
 
 1. **Photos** — load up to three of your own photos (or the two free samples). Photos are read on your machine and never uploaded; the app makes no network request.

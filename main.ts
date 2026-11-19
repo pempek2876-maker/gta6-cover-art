@@ -35,6 +35,9 @@ if (shots.length < 3 || shots.length > 4) {
 }
 for (const name of shots) {
   const bytes = statSync(join(shotsDir, name)).size;
+  if (bytes === 0) {
+    throw new Error(`screenshot ${name} is empty (0 bytes)`);
+  }
   if (bytes > SHOT_MAX_BYTES) {
     throw new Error(`screenshot ${name} is ${bytes} bytes, over the 256 KiB cap`);
   }

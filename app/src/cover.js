@@ -59,7 +59,9 @@ function drawPanelPhoto(ctx, panel, photo, crop, gradeId) {
   ctx.save();
   tracePolygon(ctx, panel.points);
   ctx.clip();
-  if (!photo) {
+  if (!photo || !photo.naturalWidth || !photo.naturalHeight) {
+    // Empty slot — or an image that failed to decode — gets the gradient
+    // placeholder instead of a divide-by-zero draw.
     const g = ctx.createLinearGradient(box.x, box.y, box.x, box.y + box.h);
     g.addColorStop(0, '#3b1155');
     g.addColorStop(0.55, '#8f1d5e');

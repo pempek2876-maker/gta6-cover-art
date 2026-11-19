@@ -46,13 +46,19 @@ export async function runShot(shot, query, api) {
 
   if (shot === 'export') {
     // The exported PNG, scaled to the screenshot limits, as a JPEG.
-    let quality = 0.88;
-    let shot_out = exportJPEGDataURL(1280, quality);
-    while (shot_out.dataUrl.length * 0.75 > 250 * 1024 && quality > 0.55) {
-      quality -= 0.08;
-      shot_out = exportJPEGDataURL(1280, quality);
+    try {
+      let quality = 0.88;
+      let shot_out = exportJPEGDataURL(1280, quality);
+      while (shot_out.dataUrl.length * 0.75 > 250 * 1024 && quality > 0.55) {
+        quality -= 0.08;
+        shot_out = exportJPEGDataURL(1280, quality);
+      }
+      window.__export = { ...shot_out, quality };
+    } catch (e) {
+      // A failed export must not hang the scene: record it and let the
+      // driver see ready=true with the error in __errors.
+      window.__errors.push(`export shot failed: ${String(e)}`);
     }
-    window.__export = { ...shot_out, quality };
   }
 
   requestAnimationFrame(() => requestAnimationFrame(() => {
