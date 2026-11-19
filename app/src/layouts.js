@@ -1,85 +1,152 @@
-// Panel layouts for the Vice City cover: every layout is a set of polygons
-// over the cover rectangle, cut on diagonals the way GTA poster art splits
-// its panels. A layout is a function of (width, height) so the same poster
-// works in square, portrait and wide export sizes.
+// Vice Cover Studio — panel layouts.
 //
-// A panel: { id, points: [[x, y], ...] (clockwise, cover space),
-//            slot: which photo slot fills it by default (0, 1 or 2),
-//            caption: 'hero' | 'band' | null — where the big lettering sits }.
-// The renderer draws each panel clipped to its polygon, then strokes the
-// gutters white so the cuts read as poster seams.
+// A layout is a set of panels that tile the whole cover. Every panel is a
+// polygon in normalised coordinates (0..1 across the cover), so the seams
+// can run diagonally the way a GTA poster splits its frame. Panels of one
+// layout share edge points, so no gap ever shows between them.
+//
+// Each layout also says where the title block sits: the centre of the
+// caption, the centre of the subline above it, and how wide the title may
+// run before it wraps. The renderer in cover.js draws the panels first,
+// then the title block on top of the seam.
+
+/** The three layouts the editor offers, in menu order. */
+export const LAYOUT_IDS = ['hero-split', 'triple-stack', 'duo-band'];
 
 /**
- * Builds the three poster layouts for a cover of size w x h.
- * Returns { id, name, blurb, panels } per layout.
+ * One panel: an id, a human label, a polygon, and the photo slot it
+ * starts with (0, 1 or 2 — the editor lets the user change it per panel).
+ * @typedef {{ id: string, label: string, poly: number[][], slot: number }} PanelDef
  */
-export function buildLayouts(w, h) {
-  const heroSplit = {
+
+/**
+ * @typedef {{
+ *   id: string, label: string, blurb: string,
+ *   panels: PanelDef[],
+ *   title: { cx: number, cy: number, align: 'center'|'left', width: number },
+ *   subline: { cx: number, align: 'center'|'left' } (its height is derived
+ *     from the fitted title size, so it always clears the title)
+ * }} LayoutDef
+ */
+
+/** @type {Record<string, LayoutDef>} */
+export const LAYOUTS = {
+  'hero-split': {
     id: 'hero-split',
-    name: 'Hero Split',
-    blurb: 'One big hero photo over two smaller panels, cut on a diagonal.',
+    label: 'Hero split',
+    blurb: 'Big top panel, two panels below',
     panels: [
-      // Hero: full width, bottom edge slopes down to the left.
-      { id: 'hero', slot: 0, caption: 'hero',
-        points: [[0, 0], [w, 0], [w, h * 0.54], [0, h * 0.63]] },
-      // Lower left: under the hero's low edge, right edge slopes.
-      { id: 'low-left', slot: 1, caption: null,
-        points: [[0, h * 0.63], [w * 0.55, h * 0.54], [w * 0.47, h], [0, h]] },
-      // Lower right: fills the rest.
-      { id: 'low-right', slot: 2, caption: null,
-        points: [[w * 0.55, h * 0.54], [w, h * 0.54], [w, h], [w * 0.47, h]] },
+      {
+        id: 'hero', label: 'Hero',
+        poly: [[0, 0], [1, 0], [1, 0.58], [0, 0.64]],
+        slot: 0,
+      },
+      {
+        id: 'low-left', label: 'Low Left',
+        poly: [[0, 0.64], [0.55, 0.58], [0.47, 1], [0, 1]],
+        slot: 1,
+      },
+      {
+        id: 'low-right', label: 'Low Right',
+        poly: [[0.55, 0.58], [1, 0.58], [1, 1], [0.47, 1]],
+        slot: 1,
+      },
     ],
-  };
+    // Title rides the hero seam, centred, so the lettering bridges the panels.
+    title: { cx: 0.5, cy: 0.615, align: 'center', width: 0.96 },
+    subline: { cx: 0.5, align: 'center' },
+  },
 
-  const tripleStack = {
+  'triple-stack': {
     id: 'triple-stack',
-    name: 'Triple Stack',
-    blurb: 'A tall feature panel beside a column of two, for portrait covers.',
+    label: 'Triple stack',
+    blurb: 'Three tilted bands, top to bottom',
     panels: [
-      // Tall left panel, right edge slopes out toward the bottom.
-      { id: 'tall', slot: 0, caption: 'hero',
-        points: [[0, 0], [w * 0.56, 0], [w * 0.48, h], [0, h]] },
-      // Upper right.
-      { id: 'top-right', slot: 1, caption: null,
-        points: [[w * 0.56, 0], [w, 0], [w, h * 0.46], [w * 0.52, h * 0.52]] },
-      // Lower right, top edge slopes up to the right.
-      { id: 'bottom-right', slot: 2, caption: null,
-        points: [[w * 0.52, h * 0.52], [w, h * 0.46], [w, h], [w * 0.48, h]] },
+      {
+        id: 'top', label: 'Top',
+        poly: [[0, 0], [1, 0], [1, 0.38], [0, 0.42]],
+        slot: 0,
+      },
+      {
+        id: 'middle', label: 'Middle',
+        poly: [[0, 0.42], [1, 0.38], [1, 0.7], [0, 0.66]],
+        slot: 1,
+      },
+      {
+        id: 'bottom', label: 'Bottom',
+        poly: [[0, 0.66], [1, 0.7], [1, 1], [0, 1]],
+        slot: 0,
+      },
     ],
-  };
+    // Title sits low in the bottom band, where the eye lands last.
+    title: { cx: 0.5, cy: 0.87, align: 'center', width: 0.94 },
+    subline: { cx: 0.5, align: 'center' },
+  },
 
-  const duoBand = {
+  'duo-band': {
     id: 'duo-band',
-    name: 'Duo Band',
-    blurb: 'Two photos on top, one wide caption band with a skyline below.',
+    label: 'Duo band',
+    blurb: 'Two tilted halves, side by side',
     panels: [
-      // Upper left, bottom edge slopes down to the right.
-      { id: 'top-left', slot: 0, caption: null,
-        points: [[0, 0], [w * 0.53, 0], [w * 0.47, h * 0.60], [0, h * 0.66]] },
-      // Upper right.
-      { id: 'top-right', slot: 1, caption: null,
-        points: [[w * 0.53, 0], [w, 0], [w, h * 0.60], [w * 0.47, h * 0.60]] },
-      // Caption band: solid colour, skyline silhouette, big lettering.
-      // slot -1 means "no photo": the band is drawn, not filled.
-      { id: 'band', slot: -1, caption: 'band',
-        points: [[0, h * 0.66], [w * 0.47, h * 0.60], [w, h * 0.60], [w, h], [0, h]] },
+      {
+        id: 'left', label: 'Left',
+        poly: [[0, 0], [0.58, 0], [0.46, 1], [0, 1]],
+        slot: 0,
+      },
+      {
+        id: 'right', label: 'Right',
+        poly: [[0.58, 0], [1, 0], [1, 1], [0.46, 1]],
+        slot: 1,
+      },
     ],
-  };
+    // Title runs along the bottom edge, left-aligned, over both halves.
+    title: { cx: 0.05, cy: 0.88, align: 'left', width: 0.9 },
+    subline: { cx: 0.05, align: 'left' },
+  },
+};
 
-  return [heroSplit, tripleStack, duoBand];
+/**
+ * Look a layout up by id, falling back to hero-split for an unknown id
+ * (a stale link or a typo in the query string must never blank the app).
+ */
+export function layoutById(id) {
+  return LAYOUTS[id] ?? LAYOUTS['hero-split'];
 }
 
-/** Finds the layout with this id, defaulting to the first. */
-export function pickLayout(w, h, id) {
-  const layouts = buildLayouts(w, h);
-  return layouts.find((l) => l.id === id) ?? layouts[0];
+/**
+ * A panel polygon scaled from normalised coordinates to cover pixels.
+ * Returns the same point order, as [x, y] pairs in pixels.
+ */
+export function panelPixels(panel, width, height) {
+  return panel.poly.map(([nx, ny]) => [nx * width, ny * height]);
 }
 
-/** Centroid of a polygon, for anchoring captions and labels. */
-export function polygonCenter(points) {
-  if (!points.length) return [0, 0];
-  let x = 0;
-  let y = 0;
-  for (const [px, py] of points) { x += px; y += py; }
-  return [x / points.length, y / points.length];
+/**
+ * The panel's bounding box in cover pixels: [x, y, w, h].
+ * The renderer uses it to size the photo's cover-fit before clipping.
+ */
+export function panelBox(panel, width, height) {
+  const pts = panelPixels(panel, width, height);
+  const xs = pts.map((p) => p[0]);
+  const ys = pts.map((p) => p[1]);
+  const x0 = Math.min(...xs);
+  const y0 = Math.min(...ys);
+  return [x0, y0, Math.max(...xs) - x0, Math.max(...ys) - y0];
+}
+
+/**
+ * Point-in-polygon test (ray casting) for normalised coordinates.
+ * The editor uses it to work out which panel a click landed in.
+ */
+export function pointInPanel(nx, ny, panel) {
+  const poly = panel.poly;
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i];
+    const [xj, yj] = poly[j];
+    const crosses = yi > ny !== yj > ny
+      && nx < ((xj - xi) * (ny - yi)) / (yj - yi) + xi;
+    if (crosses) inside = !inside;
+  }
+  return inside;
 }
